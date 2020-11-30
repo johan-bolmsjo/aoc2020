@@ -1,0 +1,8 @@
+(executable
+ (name main)
+ (flags :standard -safe-string)
+ (libraries aoc2020))
+
+(install
+ (section bin)
+  (files (main.exe as aoc2020)))

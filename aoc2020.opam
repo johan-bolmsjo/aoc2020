@@ -1,0 +1,26 @@
+opam-version: "2.0"
+
+license:    "MIT"
+authors:    ["Johan Bolmsjö"]
+maintainer: "dev@johan.bitmaster.se"
+
+build: [
+  ["dune" "subst"] {pinned}
+  ["dune" "build" "-j" jobs]
+]
+
+install: ["dune" "install"]
+
+depends: [
+  "ocaml"        { >= "4.11.0" }
+  "alcotest"     { >= "1.2.3"  }
+  "dune"         {build}
+]
+
+homepage:    "https://github.com/johan-bolmsjo/aoc2020"
+bug-reports: "https://github.com/johan-bolmsjo/aoc2020/issues"
+dev-repo:    "git+https://github.com/johan-bolmsjo/aoc2020.git"
+
+synopsis: "Advent of Code 2020"
+
+description: "Advent of Code 2020 in OCaml"

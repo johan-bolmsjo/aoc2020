@@ -1,0 +1,3 @@
+(tests
+ (names day1)
+ (libraries alcotest aoc2020))
