@@ -18,10 +18,14 @@ Make sure the following packages are installed on your system (using opam).
 Build and run puzzles:
 
     dune build
-    dune exec --debug-backtraces -- aoc2020 N ARGS
+    dune exec --debug-backtraces -- aoc2020 PUZZLE ARGS
 	
-Where N is the calendar day and ARGS any required puzzle arguments.
+Where PUZZLE is the puzzle name and ARGS any required puzzle arguments.
 Puzzles output a usage message if required arguments are missing.
+
+Example:
+
+    dune exec --debug-backtraces -- aoc2020 1.part1 data/day1/input
 
 Run tests:
 
