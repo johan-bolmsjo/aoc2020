@@ -98,7 +98,7 @@ let part2 (args :string list) :string =
             in
             if ok then 1 else 0
           in
-          count + (if (test_match idx1) + (test_match idx2) == 1 then 1 else 0)
+          count + (if (test_match idx1) + (test_match idx2) = 1 then 1 else 0)
         | _ -> count
       ) 0 |>
     string_of_int

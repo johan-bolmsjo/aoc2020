@@ -93,7 +93,7 @@ let part2 (args :string list) :string =
             | None -> search acc id xs (* Next number on same level *)
           else
             begin (* Last level *)
-              if sum == target_sum then
+              if sum = target_sum then
                 Some [x]
               else
                 (* Next number on last level *)
