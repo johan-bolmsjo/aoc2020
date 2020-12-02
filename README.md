@@ -13,7 +13,9 @@ A working OCaml installation is required, see https://ocaml.org/.
 Make sure the following packages are installed on your system (using opam).
 
 * alcotest
+* batteries
 * dune
+* humane-re
 
 Build and run puzzles:
 

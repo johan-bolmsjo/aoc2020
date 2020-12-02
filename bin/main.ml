@@ -12,6 +12,8 @@ let dispatch : string list -> string = function
       match x with
       | "1.part1" ->  Day1.part1 xs
       | "1.part2" ->  Day1.part2 xs
+      | "2.part1" ->  Day2.part1 xs
+      | "2.part2" ->  Day2.part2 xs
       | _ -> raise (Error.Bad_arg(Printf.sprintf "Unimplemented puzzle %s" x))
     end
     | _ -> raise usage

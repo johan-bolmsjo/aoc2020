@@ -1,3 +1,4 @@
 (library
  (name aoc2020)
+ (libraries batteries humane_re)
  (flags :standard -safe-string))
