@@ -20,6 +20,8 @@ Make sure the following packages are installed on your system (using opam).
 Build and run puzzles:
 
     dune build
+
+    export OCAMLRUNPARAM=b
     dune exec --debug-backtraces -- aoc2020 PUZZLE ARGS
 	
 Where PUZZLE is the puzzle name and ARGS any required puzzle arguments.
