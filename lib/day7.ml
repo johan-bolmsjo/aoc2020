@@ -422,7 +422,7 @@ end = struct
 
 end
 
-let backtrace = Printexc.print_backtrace stderr
+let backtrace () = Printexc.print_backtrace stderr
 
 let fatal msg =
   print_endline msg;
@@ -444,7 +444,7 @@ let parse_file filename  =
   try
     (lex Parser.init_state)
   with
-  | Error.Error(err) -> backtrace; fatal (Error.string_of err)
+  | Error.Error(err) -> backtrace (); fatal (Error.string_of err)
 
 let part1 (args :string list) :string =
   match args with
