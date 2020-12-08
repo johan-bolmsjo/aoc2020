@@ -88,96 +88,16 @@ In this example, a single shiny gold bag must contain 126 other bags.
 How many individual bags are required inside your single shiny gold bag?
 *)
 
-(* Disclaimer: This is a re-purposed toy language parser. *)
-
-module Error = struct
-  include Error
-
-  type lexer_error =
-    | Bad_token
-    | Unexpected_eof
-
-  let string_of_lexer_error = function
-    | Bad_token      -> "Bad token"
-    | Unexpected_eof -> "Unexpected EOF"
-
-(*
-  type parser_error =
-    | Syntax_error
-*)
-
-  (*
-  let string_of_parser_error = function
-    | Syntax_error -> "Syntax error"
-*)
-
-  type error =
-    | Lexer_error of lexer_error * Location.t
-(*
-    | Parser_error of parser_error * Location.t
-*)
-
-  exception Error of error
-
-  let string_of = function
-    | Lexer_error(err, loc) ->
-      Printf.sprintf "%s: %s" (string_of_lexer_error err) (Location.string_of loc)
-(*
-    | Parser_error(err, loc) ->
-      Printf.sprintf "%s: %s" (string_of_parser_error err) (Location.string_of loc)
-*)
-end
-
-module Lexer : sig
-  (** Context used when lexing tokens from some source. *)
-  type context
-
-  (** Lexed token content *)
-  type token_datum = {
-    value    :string;
-    location :Location.t;
-  }
-
-  (** Tokens *)
-  type token =
-    | Identifier of token_datum
-    | Number of token_datum
-    | Comma of token_datum
-    | Dot of token_datum
-    | Space of token_datum
-    | Newline of token_datum
-
-(*
-  val datum_of_token : token -> token_datum
-*)
-
-  val string_of_token : token -> string
-
-  val context_of_char_stream : char Stream.t -> context
-
-  (** [lex ctx] lexes one token from [ctx].
-
-      None is returned on end of stream.
-
-      Raises:
-        Sys_error
-        Error.Error(Lexer_error(...))
-  *)
-  val lex : context -> token option
-
-end = struct
-  type token_datum = {
-    value    :string;
-    location :Location.t;
-  }
+module Lexer = struct
+  include Lexer
 
   type token =
-    | Identifier of token_datum
-    | Number of token_datum
-    | Comma of token_datum
-    | Dot of token_datum
-    | Space of token_datum
-    | Newline of token_datum
+    | Identifier of datum
+    | Number of datum
+    | Comma of datum
+    | Dot of datum
+    | Space of datum
+    | Newline of datum
 
   let datum_of_token = function
     | Identifier d | Number d | Comma d | Dot d | Space d | Newline d -> d
@@ -194,94 +114,14 @@ end = struct
     let datum = datum_of_token token in
     Printf.sprintf "%s: \"%s\" %s" kind (String.escaped datum.value) (Location.string_of datum.location)
 
-  type context = {
-    stream                   :char Stream.t;
-    buf                      :Buffer.t;
-    mutable location_token   :Location.t;  (* Location at token reset *)
-    mutable location_current :Location.t;  (* Continuously updated location *)
-  }
-
-  let context_of_char_stream stream =
-    { stream
-    ; buf              = Buffer.create 100
-    ; location_token   = Location.zero
-    ; location_current = Location.zero
-    }
-
-  (* Reset token lexing state. *)
-  let reset_lexing_state ctx =
-    Buffer.reset ctx.buf;
-    ctx.location_token <- ctx.location_current
-
-  (* Get lexed characters as token of type [typ] and reset token lexing state. *)
-  let get_token_datum ctx =
-    let datum = { value = Buffer.contents ctx.buf; location = ctx.location_token } in
-    reset_lexing_state ctx; datum
-
-  let peek_char ctx = Stream.peek ctx.stream
-
-  (* Save previously peeked character.
-
-     Line and column information is updated based on character value.
-
-     The character is added to the temporary lexer context buffer for possible
-     later inclusion in a lexed token.
-  *)
-  let save_char ctx c =
-    Buffer.add_char ctx.buf c;
-    Stream.junk ctx.stream;
-    let location = ctx.location_current in
-    match c with
-    | '\n' -> ctx.location_current <- { line = location.line + 1; column = 0 }
-    | '\r' -> () (* Invisitble control char *)
-    | '\t' -> ctx.location_current <- { location with column = location.column + 8 } (* Tabs are messy, count something. *)
-    | _    -> ctx.location_current <- { location with column = location.column + 1 }
-
-  (* ~~~ Token lexing helper functions. ~~~ *)
-
-  (* Lex single character token. *)
-  let lex_single_char ctx c =
-    save_char ctx c;
-    get_token_datum ctx
-
-  (* Lex characters until predicate function says no. *)
-  let lex_until ctx pred ?(keep_last=false) ?(get_token_datum=get_token_datum) c =
-    save_char ctx c;
-    let rec consume () =
-      match peek_char ctx with
-      | Some c ->
-        if (pred c) then
-          begin
-            save_char ctx c;
-            consume ()
-          end
-        else
-          begin
-            (if keep_last then save_char ctx c);
-            get_token_datum ctx
-          end
-      | None -> raise (Error.Error(Lexer_error(Unexpected_eof, ctx.location_token)))
-    in
-    consume ()
-
-  (* Lex characters until predicate function says no or EOF occurs. *)
-  let lex_until_or_eof ctx pred ?(keep_last=false) c =
-    try
-      lex_until ctx pred ~keep_last c
-    with
-      Error.Error(Lexer_error(Unexpected_eof, _)) -> get_token_datum ctx
-
-  (* ~~~ Token type lexing functions ~~~ *)
-
   let lex_identifier ctx = lex_until_or_eof ctx (fun c -> c >= 'a' && c <= 'z')
   let lex_number     ctx = lex_until_or_eof ctx (fun c -> c >= '0' && c <= '9')
   let lex_space      ctx = lex_until_or_eof ctx (fun c -> c = ' ' || c = '\t')
   let lex_newline    ctx = lex_until_or_eof ctx (fun c -> c = '\n' || c = '\r')
 
-  (* Entry point. *)
   let lex ctx =
-    reset_lexing_state ctx;
-    match peek_char ctx with
+    Context.reset ctx;
+    match Context.peek_char ctx with
     | Some c ->
       begin
         Some(
@@ -292,46 +132,15 @@ end = struct
           | '.'         -> Dot(lex_single_char ctx c)
           | ' ' | '\t'  -> Space(lex_space ctx c)
           | '\n' | '\r' -> Newline(lex_newline ctx c)
-          | _ -> raise (Error.Error(Lexer_error(Bad_token, ctx.location_current)))
+          | _ -> raise (Error.Exn(With_loc(Bad_token, Context.current_location ctx)))
         )
       end
     | None -> None (* EOF *)
 end
 
-module Parser : sig
-  (* Parser state that is produced anew for each parsed token. *)
-  type state
-
-  (** Initial parser state. *)
-  val init_state : state
-
-  (** Parse token and produce new parser state.
-
-      Raises:
-        Error.Error(Parser_error(...))
-  *)
-  val parse: Lexer.token -> state -> state
-
-  (** [count_bags_containing_color color state] returns the number of bags
-     containing [color] *)
-  val count_bags_containing_color: string -> state -> int
-
-  (** [count_bags_contained_in_color color state] returns the number of bags
-      contained in [color] *)
-  val count_bags_contained_in_color: string -> state -> int
-
-end = struct
+module Parser = struct
   module String_map = Map.Make(String)
   module String_set = Set.Make(String)
-
-(*
-  let location_of_token token = (Lexer.datum_of_token token).location
-*)
-
-(*
-  let syntax_error location =
-    Error.Error(Parser_error(Syntax_error, location))
-*)
 
   type state = {
     count       : int;
@@ -433,7 +242,7 @@ let lexer_debug = false
 (* TODO: file descriptor leak *)
 let parse_file filename  =
   let ichan = open_in filename in
-  let lex_ctx = Lexer.context_of_char_stream (Stream.of_channel ichan) in
+  let lex_ctx = Lexer.Context.of_char_stream (Stream.of_channel ichan) in
   let rec lex pstate =
     match Lexer.lex lex_ctx with
     | Some token ->
@@ -444,7 +253,7 @@ let parse_file filename  =
   try
     (lex Parser.init_state)
   with
-  | Error.Error(err) -> backtrace (); fatal (Error.string_of err)
+  | Lexer.Error.Exn(err) -> backtrace (); fatal (Lexer.Error.string_of err)
 
 let part1 (args :string list) :string =
   match args with
