@@ -231,16 +231,8 @@ module Parser = struct
 
 end
 
-let backtrace () = Printexc.print_backtrace stderr
-
-let fatal msg =
-  print_endline msg;
-  exit 1
-
-let lexer_debug = false
-
-(* TODO: file descriptor leak *)
 let parse_file filename  =
+  let lexer_debug = false in
   let ichan = open_in filename in
   let lex_ctx = Lexer.Context.of_char_stream (Stream.of_channel ichan) in
   let rec lex pstate =
@@ -251,9 +243,13 @@ let parse_file filename  =
     | None -> pstate
   in
   try
-    (lex Parser.init_state)
+    let r = (lex Parser.init_state) in
+    close_in ichan; r
   with
-  | Lexer.Error.Exn(err) -> backtrace (); fatal (Lexer.Error.string_of err)
+  | Lexer.Error.Exn(err) ->
+    close_in ichan;
+    Log.backtrace ();
+    Log.fatalln (Lexer.Error.string_of err)
 
 let part1 (args :string list) :string =
   match args with

@@ -24,6 +24,8 @@ let dispatch : string list -> string = function
       | "6.part2" ->  Day6.part2 xs
       | "7.part1" ->  Day7.part1 xs
       | "7.part2" ->  Day7.part2 xs
+      | "8.part1" ->  Day8.part1 xs
+      | "8.part2" ->  Day8.part2 xs
       | _ -> raise (Error.Bad_arg(Printf.sprintf "Unimplemented puzzle %s" x))
     end
     | _ -> raise usage
