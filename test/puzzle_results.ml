@@ -48,6 +48,12 @@ let test_day8_part1 () =
 let test_day8_part2 () =
   Alcotest.(check string) "equal" "969" (Day8.part2 ["../../../data/day8/input"])
 
+let test_day9_part1 () =
+  Alcotest.(check string) "equal" "2089807806" (Day9.part1 ["../../../data/day9/input"])
+
+let test_day9_part2 () =
+  Alcotest.(check string) "equal" "" (Day9.part2 ["../../../data/day9/input"])
+
 (*
 let test_dayX_part1 () =
   Alcotest.(check string) "equal" "" (DayX.part1 ["../../../data/dayX/input"])
@@ -98,6 +104,11 @@ let () =
         [
           Alcotest.test_case "part1" `Quick test_day8_part1;
           Alcotest.test_case "part2" `Quick test_day8_part2;
+        ] );
+      ( "Day9",
+        [
+          Alcotest.test_case "part1" `Quick test_day9_part1;
+          Alcotest.test_case "part2" `Quick test_day9_part2;
         ] );
       (*
       ( "DayX",
